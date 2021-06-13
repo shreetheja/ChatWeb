@@ -1,12 +1,15 @@
-const socket = io.connect('http://localhost:3000')
 
+const socket = io.connect('http://localhost:3000')
+console.log('Connected')
 const messageForm = document.getElementById('send-form')
 const messageInput = document.getElementById('message-input')
 const messageContainer = document.getElementById('message-cont')
 const peopleContainer = document.getElementById('people-cont')
 
 var MessageElem = document.querySelector('#chat-message');
+var TimeElem = document.querySelector('#time-message');
 var PeopleElem = document.querySelector('#people-message');
+
 
 const name = prompt("What is your name?")
 
@@ -14,8 +17,10 @@ var canPublish = true
 var TypeThrottle = 200
 var usersTyping = {}
 var users = {}
+var moment = moment()
+TimeElem.innerText = moment.format('h:mm a')
 
-socket.emit('new-user',name)
+socket.emit('new-user',roomName,name)
 
 socket.on('users-in-session',data=>
 {
@@ -47,14 +52,14 @@ messageForm.addEventListener('submit',e=>
 {
     e.preventDefault();
     const message = messageInput.value;
-    socket.emit('send-chat-message',message)
+    socket.emit('send-chat-message',roomName,message)
     appendMessage(`you : ${message}`)
     messageInput.value = ''
 })
 messageInput.addEventListener('keyup',()=>{
     if(canPublish)
     {
-        socket.emit('user-typing')
+        socket.emit('user-typing',roomName)
         canPublish =false
         setTimeout(function(){
             canPublish =true
@@ -64,9 +69,14 @@ messageInput.addEventListener('keyup',()=>{
 
 function appendMessage(message)
 {
-    var clone = MessageElem.cloneNode(true);
-    clone.innerText = message;
-    messageContainer.append(clone)
+    var Msgclone = MessageElem.cloneNode(true);
+    Msgclone.innerText = message;
+    var Timeclone = TimeElem.cloneNode(true);
+    Timeclone.innerText = moment.format('h:mm a')
+    Msgclone.append(Timeclone)
+    messageContainer.append(Msgclone)
+    
+
     
 }
 function appendPeople(name)
